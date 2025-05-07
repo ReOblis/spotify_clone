@@ -12,6 +12,8 @@ const Sidebar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+const [showCreateInput, setShowCreateInput] = useState(false);
+const [newPlaylistName, setNewPlaylistName] = useState("");
 
   // Check if route is active
   const isActive = (path) => {
@@ -60,21 +62,28 @@ const Sidebar = () => {
     }
   }, [location.pathname]);
 
-  const handleCreatePlaylist = async () => {
-    if (!isLoggedIn) {
-      navigate('/login');
-      return;
-    }
-    
-    try {
-      const newPlaylistName = `My Playlist #${playlists.length + 1}`;
-      const newPlaylist = await createPlaylist(newPlaylistName);
-      setPlaylists([...playlists, newPlaylist]);
-      navigate(`/playlist/${newPlaylist.id}`);
-    } catch (error) {
-      console.error("Error creating playlist:", error);
-    }
-  };
+ const handleCreatePlaylist = async () => {
+  if (!isLoggedIn) {
+    navigate('/login');
+    return;
+  }
+
+  if (!newPlaylistName.trim()) {
+    alert("Please enter a playlist name.");
+    return;
+  }
+
+  try {
+    const newPlaylist = await createPlaylist(newPlaylistName.trim());
+    setPlaylists([...playlists, newPlaylist]);
+    setNewPlaylistName(""); // Reset form
+    setShowCreateInput(false); // Ẩn form
+    navigate(`/playlist/${newPlaylist.id}`);
+  } catch (error) {
+    console.error("Error creating playlist:", error);
+  }
+};
+
 
   const handleSearch = async (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -163,26 +172,58 @@ const Sidebar = () => {
       </div>
       
       {/* Library section */}
-      <div className="bg-[#121212] flex-grow rounded flex flex-col overflow-hidden">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img className="w-6" src={assets.stack_icon} alt="Library" />
-            <p className="font-semibold">Your Library</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div 
-              onClick={handleCreatePlaylist} 
-              className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#282828] cursor-pointer"
-              title="Create playlist"
-            >
-              <img className="w-4" src={assets.plus_icon} alt="Create" />
-            </div>
-            <div className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#282828] cursor-pointer">
-              <img className="w-4" src={assets.arrow_icon} alt="Browse" />
-            </div>
-          </div>
-        </div>
-        
+<div className="bg-[#121212] flex-grow rounded flex flex-col overflow-hidden">
+
+  {/* Header: Library + Buttons */}
+  <div className="p-4 flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <img className="w-6" src={assets.stack_icon} alt="Library" />
+      <p className="font-semibold">Your Library</p>
+    </div>
+    <div className="flex items-center gap-3">
+      <div 
+        onClick={() => setShowCreateInput(prev => !prev)}
+        className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#282828] cursor-pointer"
+        title="Create playlist"
+      >
+        <img className="w-4" src={assets.plus_icon} alt="Create" />
+      </div>
+      <div className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-[#282828] cursor-pointer">
+        <img className="w-4" src={assets.arrow_icon} alt="Browse" />
+      </div>
+    </div>
+  </div>
+
+  {/* Create Playlist Input - Show when toggled */}
+  {showCreateInput && (
+    <div className="px-4 mb-2">
+      <input
+        type="text"
+        value={newPlaylistName}
+        onChange={(e) => setNewPlaylistName(e.target.value)}
+        placeholder="Enter playlist name"
+        className="w-full p-2 rounded bg-[#1a1a1a] text-white placeholder-gray-400 mb-2 border border-gray-600"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={handleCreatePlaylist}
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded"
+        >
+          Create
+        </button>
+        <button
+          onClick={() => {
+            setShowCreateInput(false);
+            setNewPlaylistName("");
+          }}
+          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-1.5 rounded"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
+
         {/* Filter/sort options */}
         <div className="px-4 flex gap-2">
           <button className="px-3 py-1.5 text-sm bg-[#232323] hover:bg-[#2a2a2a] rounded-full">Playlists</button>
@@ -262,12 +303,7 @@ const Sidebar = () => {
           ) : (
             <div className="p-4 text-center text-gray-400">
               <p>No playlists found</p>
-              <button 
-                onClick={handleCreatePlaylist}
-                className="mt-4 px-4 py-1.5 bg-green-500 text-white rounded-full hover:bg-green-600"
-              >
-                Create Playlist
-              </button>
+              
             </div>
           )}
         </div>

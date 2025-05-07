@@ -1,23 +1,28 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import AlbumItem from "./AlbumItem";
 import SongItem from "./SongItem";
-import { getAlbums, getSongsByAlbum, getTopSongs, searchContent } from "../api";
+import VideoItem from "./VideoItem";
+import { PlayerContext } from "../context/PlayerContext";
+import { getAlbums, getSongsByAlbum, getTopSongs, getVideos, searchContent } from "../api";
 
 const DisplayHome = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { videos: contextVideos } = useContext(PlayerContext);
   const [albums, setAlbums] = useState([]);
   const [songs, setSongs] = useState([]);
   const [artists, setArtists] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("home"); // "home" or "videos"
 
   useEffect(() => {
-    // Kiểm tra xem có phải đang ở chế độ tìm kiếm không
+    // Check if we're in search mode
     if (location.search) {
       const params = new URLSearchParams(location.search);
       const query = params.get('q');
@@ -32,20 +37,28 @@ const DisplayHome = () => {
       setIsSearchMode(true);
       
       if (location.state?.results) {
-        const { songs, albums, artists } = location.state.results;
+        const { songs, albums, artists, videos } = location.state.results;
         setSongs(songs || []);
         setAlbums(albums || []);
         setArtists(artists || []);
+        setVideos(videos || []);
       } else {
         performSearch(location.state.query);
       }
       return;
     }
 
-    // Nếu không ở chế độ tìm kiếm, hiển thị nội dung mặc định
+    // If not in search mode, display default content
     setIsSearchMode(false);
     fetchDefaultData();
   }, [location]);
+
+  useEffect(() => {
+    // Use videos from context if available
+    if (contextVideos.length > 0 && activeTab === "videos") {
+      setVideos(contextVideos);
+    }
+  }, [contextVideos, activeTab]);
 
   const fetchDefaultData = async () => {
     setIsLoading(true);
@@ -57,6 +70,10 @@ const DisplayHome = () => {
       // Fetch top songs
       const topSongsData = await getTopSongs();
       setSongs(topSongsData);
+      
+      // Fetch videos
+      const videosData = await getVideos();
+      setVideos(videosData);
     } catch (error) {
       console.error("Error fetching default data:", error);
     } finally {
@@ -71,6 +88,7 @@ const DisplayHome = () => {
       setSongs(results.songs || []);
       setAlbums(results.albums || []);
       setArtists(results.artists || []);
+      setVideos(results.videos || []);
     } catch (error) {
       console.error("Search error:", error);
     } finally {
@@ -78,15 +96,23 @@ const DisplayHome = () => {
     }
   };
 
-  // Lọc kết quả dựa trên bộ lọc đang hoạt động (chỉ áp dụng cho chế độ tìm kiếm)
+  // Filter results based on active filter (only applies to search mode)
   const getFilteredResults = () => {
     if (!isSearchMode || activeFilter === "all") {
-      return { songs, albums, artists };
+      return { songs, albums, artists, videos };
+    } else if (activeFilter === "videos") {
+      return {
+        songs: [],
+        albums: [],
+        artists: [],
+        videos: videos
+      };
     } else {
       return {
         songs: activeFilter === "music" ? songs : [],
         albums: activeFilter === "music" ? albums : [],
         artists: activeFilter === "music" ? artists : [],
+        videos: []
       };
     }
   };
@@ -95,27 +121,91 @@ const DisplayHome = () => {
   const hasResults = isSearchMode && (
     filteredResults.songs?.length > 0 || 
     filteredResults.albums?.length > 0 || 
-    filteredResults.artists?.length > 0
+    filteredResults.artists?.length > 0 ||
+    filteredResults.videos?.length > 0
   );
 
-  return (
-    <>
-      <Navbar onSearch={(query) => {
-        navigate(`/?q=${encodeURIComponent(query)}`, { 
-          state: { query } 
-        });
-      }} />
-
-     
-      {isLoading ? (
-        <div className="flex justify-center items-center h-40">
-          <div className="w-10 h-10 border-t-4 border-green-500 rounded-full animate-spin"></div>
+  // Videos tab display
+  const renderVideosTab = () => {
+    if (videos.length === 0) {
+      return (
+        <div className="p-8">
+          <div className="bg-[#181818] p-8 rounded-lg text-center">
+            <p className="text-gray-400">Không có video nào</p>
+          </div>
         </div>
-      ) : isSearchMode ? (
-        // Hiển thị kết quả tìm kiếm
+      );
+    }
+
+    return (
+      <div className="p-8">
+        {/* Featured Videos */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold mb-4">Featured</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {videos.slice(0, 4).map((video) => (
+              <VideoItem
+                key={video.id}
+                id={video.id}
+                title={video.title}
+                thumbnail={video.thumbnail}
+                duration={video.duration}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* All Videos */}
+        {videos.length > 4 && (
+          <div>
+            <h3 className="text-xl font-bold mb-4">All Videos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {videos.map((video) => (
+                <VideoItem
+                  key={video.id}
+                  id={video.id}
+                  title={video.title}
+                  thumbnail={video.thumbnail}
+                  duration={video.duration}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Home tab display (existing content)
+  const renderHomeTab = () => {
+    if (isSearchMode) {
+      // Show search results
+      return (
         <>
           {hasResults ? (
             <div className="p-4">
+              {/* Filter tabs - only show in search mode */}
+              <div className="flex gap-4 mb-6">
+                <button 
+                  className={`px-4 py-2 rounded-full ${activeFilter === 'all' ? 'bg-green-500 text-white' : 'bg-[#282828] text-gray-300'}`}
+                  onClick={() => setActiveFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={`px-4 py-2 rounded-full ${activeFilter === 'music' ? 'bg-green-500 text-white' : 'bg-[#282828] text-gray-300'}`}
+                  onClick={() => setActiveFilter('music')}
+                >
+                  Music
+                </button>
+                <button 
+                  className={`px-4 py-2 rounded-full ${activeFilter === 'videos' ? 'bg-green-500 text-white' : 'bg-[#282828] text-gray-300'}`}
+                  onClick={() => setActiveFilter('videos')}
+                >
+                  Videos
+                </button>
+              </div>
+              
               {/* Artists Section */}
               {filteredResults.artists?.length > 0 && (
                 <div className="mb-4">
@@ -184,6 +274,24 @@ const DisplayHome = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Videos Section */}
+              {filteredResults.videos?.length > 0 && (
+                <div className="mb-4">
+                  <h1 className="my-5 font-bold text-2xl">Videos</h1>
+                  <div className="flex overflow-auto gap-4 pb-4">
+                    {filteredResults.videos.map((video) => (
+                      <VideoItem 
+                        key={video.id} 
+                        id={video.id} 
+                        title={video.title} 
+                        thumbnail={video.thumbnail || null} 
+                        duration={video.duration} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -195,8 +303,10 @@ const DisplayHome = () => {
             </div>
           )}
         </>
-      ) : (
-        // Hiển thị nội dung mặc định
+      );
+    } else {
+      // Show default home content
+      return (
         <div className="p-4">
           <div className="mb-4">
             <h1 className="my-5 font-bold text-2xl">Featured Albums</h1>
@@ -218,7 +328,7 @@ const DisplayHome = () => {
           </div>
 
           <div className="mb-4">
-            <h1 className="my-5 font-bold text-2xl">Today's biggest hits</h1>
+            <h1 className="my-5 font-bold text-2xl">Top 20 biggest hits</h1>
             <div className="flex overflow-auto gap-4 pb-4">
               {songs.length > 0 ? (
                 songs.map((song) => (
@@ -235,7 +345,61 @@ const DisplayHome = () => {
               )}
             </div>
           </div>
+          
+          {/* New Videos Section */}
+          <div className="mb-4">
+            <h1 className="my-5 font-bold text-2xl">Latest Videos</h1>
+            <div className="flex overflow-auto gap-4 pb-4">
+              {videos.length > 0 ? (
+                videos.map((video) => (
+                  <VideoItem 
+                    key={video.id} 
+                    id={video.id} 
+                    title={video.title} 
+                    thumbnail={video.thumbnail || null} 
+                    duration={video.duration} 
+                  />
+                ))
+              ) : (
+                <p>Loading videos...</p>
+              )}
+            </div>
+          </div>
         </div>
+      );
+    }
+  };
+
+  return (
+    <>
+      <Navbar onSearch={(query) => {
+        navigate(`/?q=${encodeURIComponent(query)}`, { 
+          state: { query } 
+        });
+      }} />
+
+      {/* Tab navigation */}
+      <div className="flex border-b border-[#282828] mb-4">
+        <button 
+          className={`px-6 py-3 font-medium ${activeTab === 'home' ? 'text-green-500 border-b-2 border-green-500' : 'text-gray-300'}`}
+          onClick={() => setActiveTab('home')}
+        >
+          Home
+        </button>
+        <button 
+          className={`px-6 py-3 font-medium ${activeTab === 'videos' ? 'text-green-500 border-b-2 border-green-500' : 'text-gray-300'}`}
+          onClick={() => setActiveTab('videos')}
+        >
+          Videos
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-40">
+          <div className="w-10 h-10 border-t-4 border-green-500 rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        activeTab === "home" ? renderHomeTab() : renderVideosTab()
       )}
     </>
   );

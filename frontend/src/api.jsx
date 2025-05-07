@@ -198,6 +198,28 @@ export const removeFromFavorites = async (songId) => {
     throw error;
   }
 };
+export const removePlaylist = async (playlistId) => {
+  const token = Cookies.get("token") || "";
+
+  try {
+    const response = await fetch(`${API_URL}/playlists/${playlistId}/delete/`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Token ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error removing playlist:", error);
+    throw error;
+  }
+};
+
 
 // PLAYLIST APIS
 
@@ -371,3 +393,31 @@ export const searchContent = async (query) => {
     throw error;
   }
 };
+export const getVideos = async () => {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/music/videos/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch videos');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching videos:', error);
+    throw error;
+  }
+};
+
+// Get a specific video
+export const getVideo = async (id) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/music/videos/${id}/`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch video');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching video ${id}:`, error);
+    throw error;
+  }
+};
+
+// Update the searchContent function to include videos

@@ -1,11 +1,15 @@
+import mimetypes
+import os
+import re
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from .models import Song, Album, Playlist, FavoriteSong, PlaylistSong
-from .serializers import SongSerializer, AlbumSerializer, PlaylistSerializer
-from django.http import JsonResponse
+from .models import Song, Album, Playlist, FavoriteSong, PlaylistSong, Video
+from .serializers import SongSerializer, AlbumSerializer, PlaylistSerializer, VideoSerializer
+from django.http import JsonResponse, StreamingHttpResponse
 from django.conf import settings
 from rest_framework.response import Response
 from django.http import FileResponse, Http404
@@ -190,7 +194,15 @@ class RemoveSongFromPlaylist(APIView):
         playlist_song.delete()
         return Response({"detail": "Song removed from playlist"}, status=status.HTTP_200_OK)
   
-    
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_playlist(request, playlist_id):
+    try:
+        playlist = Playlist.objects.get(id=playlist_id, user=request.user)
+        playlist.delete()
+        return Response({"detail": "Playlist deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except Playlist.DoesNotExist:
+        return Response({"detail": "Playlist not found or unauthorized"}, status=status.HTTP_404_NOT_FOUND)
 class FavoriteSongView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -301,3 +313,84 @@ def search(request):
         'songs': SongSerializer(songs, many=True).data,
         'albums': AlbumSerializer(albums, many=True).data
     })
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_videos(request):
+    videos = Video.objects.all().order_by('-created_at')
+    serializer = VideoSerializer(videos, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_video(request, id):
+    video = get_object_or_404(Video, id=id)
+    serializer = VideoSerializer(video)
+    return Response(serializer.data)
+
+def video_stream_generator(video_path, chunk_size=8192):
+    with open(video_path, 'rb') as video_file:
+        while True:
+            chunk = video_file.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def stream_video(request, id):
+    video = get_object_or_404(Video, id=id)
+    video_path = video.video_file.path
+    
+    # Get file size
+    file_size = os.path.getsize(video_path)
+    
+    # Get content type
+    content_type, _ = mimetypes.guess_type(video_path)
+    if not content_type:
+        content_type = 'video/mp4'  # Default to mp4 if type cannot be determined
+    
+    # Handle range requests
+    range_header = request.META.get('HTTP_RANGE', '').strip()
+    range_match = re.match(r'bytes=(\d+)-(\d*)', range_header)
+    
+    if range_match:
+        start = int(range_match.group(1))
+        end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+        
+        # Make sure we don't go beyond file size
+        end = min(end, file_size - 1)
+        length = end - start + 1
+        
+        response = StreamingHttpResponse(
+            streaming_content=ranged_video_stream(video_path, start, end),
+            status=206,
+            content_type=content_type
+        )
+        response['Accept-Ranges'] = 'bytes'
+        response['Content-Length'] = str(length)
+        response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+    else:
+        # Full video stream
+        response = StreamingHttpResponse(
+            streaming_content=video_stream_generator(video_path),
+            content_type=content_type
+        )
+        response['Accept-Ranges'] = 'bytes'
+        response['Content-Length'] = str(file_size)
+    
+    return response
+
+def ranged_video_stream(path, start, end, chunk_size=8192):
+    with open(path, 'rb') as f:
+        f.seek(start)
+        remaining = end - start + 1
+        while remaining > 0:
+            bytes_to_read = min(chunk_size, remaining)
+            data = f.read(bytes_to_read)
+            if not data:
+                break
+            remaining -= len(data)
+            yield data

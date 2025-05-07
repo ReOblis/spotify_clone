@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Album, Song
-from .models import Playlist, FavoriteSong, PlaylistSong
+from .models import Playlist, FavoriteSong, PlaylistSong, Video
 from django.conf import settings
 
 
@@ -61,3 +61,12 @@ class FavoriteSongSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteSong
         fields = ['id', 'user', 'song', 'added_at']
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'video_file', 'duration', 'created_at', 'thumbnail']
+        
+    thumbnail = serializers.SerializerMethodField()
+    
+    def get_thumbnail(self, obj):
+        return None  

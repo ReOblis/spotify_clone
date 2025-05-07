@@ -17,10 +17,10 @@ class Song(models.Model):
     title = models.CharField(max_length=255)
     artist = models.CharField(max_length=255)
     album = models.ForeignKey(Album, related_name="songs", on_delete=models.CASCADE, null=True, blank=True)
-    audio_file = models.FileField(upload_to="songs/")  # Upload file nhạc
+    audio_file = models.FileField(upload_to="songs/") 
     duration = models.TimeField()
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    cover_image = models.ImageField(upload_to="covers/", blank=True, null=True)  # Dùng ImageField thay vì URLField
+    cover_image = models.ImageField(upload_to="covers/", blank=True, null=True) 
     listen_count = models.PositiveIntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)

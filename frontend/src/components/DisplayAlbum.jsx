@@ -48,7 +48,7 @@ const DisplayAlbum = () => {
   if (!albumData) return <p>Loading...</p>;
   
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4">
+    <div>
 
       <Navbar />
       {/* Album Info */}
