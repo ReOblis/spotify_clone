@@ -18,7 +18,7 @@ class Song(models.Model):
     artist = models.CharField(max_length=255)
     album = models.ForeignKey(Album, related_name="songs", on_delete=models.CASCADE, null=True, blank=True)
     audio_file = models.FileField(upload_to="songs/") 
-    duration = models.TimeField()
+    duration = models.CharField(max_length=50, blank=True)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     cover_image = models.ImageField(upload_to="covers/", blank=True, null=True) 
     listen_count = models.PositiveIntegerField(default=0)

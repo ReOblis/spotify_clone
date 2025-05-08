@@ -4,7 +4,7 @@ import { getSongs, getVideos } from "../api"; // Add getVideos import
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
-  const audioRef = useRef();
+  const audioRef = useRef(); //tham chiếu giữ nguyên trong render
   const videoRef = useRef(); 
   const seekBg = useRef();
   const seekBar = useRef();

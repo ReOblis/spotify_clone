@@ -32,13 +32,6 @@ class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = '__all__'
-
-    def get_cover_image(self, obj):
-        request = self.context.get("request")
-        if obj.cover_image and hasattr(obj.cover_image, 'url'):
-            return request.build_absolute_uri(obj.cover_image.url)
-        return None    
-    cover_image = serializers.SerializerMethodField()
     def get_cover_image(self, obj):
         if obj.cover_image:
             return f"http://127.0.0.1:8000{settings.MEDIA_URL}{obj.cover_image}"
