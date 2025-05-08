@@ -58,7 +58,7 @@ class FavoriteSongAdmin(admin.ModelAdmin):
 # -------------------------
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'duration', 'created_at')
+    list_display = ('id', 'title', 'duration', 'created_at', 'thumbnail')
     search_fields = ('title',)
     list_filter = ('created_at',)
 

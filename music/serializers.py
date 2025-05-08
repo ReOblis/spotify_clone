@@ -64,9 +64,10 @@ class FavoriteSongSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ['id', 'title', 'video_file', 'duration', 'created_at', 'thumbnail']
+        fields = ['id', 'title', 'video_file', 'duration', 'thumbnail' , 'created_at']
         
     thumbnail = serializers.SerializerMethodField()
-    
     def get_thumbnail(self, obj):
-        return None  
+        if obj.thumbnail:
+            return f"http://127.0.0.1:8000{settings.MEDIA_URL}{obj.thumbnail}"
+        return None

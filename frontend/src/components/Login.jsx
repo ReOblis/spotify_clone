@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../api";  // Import hàm login từ api.jsx
+import { login } from "../api"; 
 
 
 const Login = () => {
@@ -11,16 +11,13 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrorMsg(""); // Reset lỗi trước khi thực hiện login
+    setErrorMsg(""); 
 
     try {
-      // Gọi hàm login từ api.jsx
       const userData = await login({ email, password });
 
-      // Nếu đăng nhập thành công, chuyển hướng người dùng đến trang chủ
-      navigate("/"); // Hoặc bất kỳ trang nào bạn muốn người dùng đến sau khi đăng nhập
+      navigate("/"); 
     } catch (error) {
-      // Nếu có lỗi, hiển thị thông báo lỗi
       console.error("Lỗi đăng nhập:", error);
       setErrorMsg(error.message || "Đăng nhập thất bại");
     }

@@ -1,37 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie"; // Import js-cookie để kiểm tra cookie
+import Cookies from "js-cookie"; 
 import { assets } from "../assets/assets";
 
 const Navbar = () => {
-  const [hasToken, setHasToken] = useState(false); // State để lưu thông tin có token hay không
-  const [showPopup, setShowPopup] = useState(false); // State để kiểm soát hiển thị popup
-  const [username, setUsername] = useState("User"); // State để lưu tên người dùng
-  const [showConfirm, setShowConfirm] = useState(false); // State để hiển thị xác nhận đăng xuất
+  const [hasToken, setHasToken] = useState(false); 
+  const [showPopup, setShowPopup] = useState(false); 
+  const [username, setUsername] = useState("User"); 
+  const [showConfirm, setShowConfirm] = useState(false); 
   const [showSuccess, setShowSuccess] = useState(false); // State để hiển thị thông báo thành công
-  const popupRef = useRef(null); // Tham chiếu đến popup để xử lý click outside
+  const popupRef = useRef(null); 
   const confirmRef = useRef(null); // Tham chiếu đến hộp xác nhận
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Kiểm tra nếu có token trong cookie
     const token = Cookies.get("token");
     if (token) {
-      setHasToken(true); // Nếu có token thì hiển thị phần tử "B"
+      setHasToken(true); 
       
-      // Lấy tên người dùng từ cookie hoặc localStorage nếu có
       const savedUsername = localStorage.getItem("username") || Cookies.get("username");
       if (savedUsername) {
         setUsername(savedUsername);
       }
     } else {
-      setHasToken(false); // Nếu không có token thì ẩn phần tử "B"
+      setHasToken(false); 
     }
-  }, []); // Chạy once khi component mount
+  }, []); 
 
   useEffect(() => {
-    // Xử lý click outside để đóng popup
     function handleClickOutside(event) {
       if (popupRef.current && !popupRef.current.contains(event.target) && 
           confirmRef.current && !confirmRef.current.contains(event.target)) {
@@ -40,30 +37,23 @@ const Navbar = () => {
       }
     }
     
-    // Thêm event listener
     document.addEventListener("mousedown", handleClickOutside);
     
-    // Cleanup event listener
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [popupRef, confirmRef]);
 
-  // Hiển thị hộp xác nhận đăng xuất
   const handleLogoutClick = () => {
     setShowConfirm(true);
   };
 
-  // Xử lý đăng xuất khi người dùng xác nhận
   const handleLogout = () => {
-    // Hiển thị thông báo thành công
     setShowSuccess(true);
     
-    // Đóng hộp xác nhận
     setShowConfirm(false);
     
     setTimeout(() => {
-      // Xóa token khỏi cookie
       Cookies.remove("token");
       Cookies.remove("username");
       localStorage.removeItem("username");
@@ -122,7 +112,6 @@ const Navbar = () => {
             </>
           )}
           
-          {/* Hiển thị phần tử B nếu có token */}
           {hasToken && (
             <div className="relative">
               <p 
@@ -154,7 +143,6 @@ const Navbar = () => {
                 </div>
               )}
               
-              {/* Hộp xác nhận đăng xuất */}
               {showConfirm && (
                 <div 
                   ref={confirmRef}
@@ -182,7 +170,6 @@ const Navbar = () => {
                 </div>
               )}
               
-              {/* Thông báo đăng xuất thành công */}
               {showSuccess && (
                 <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-md shadow-lg z-50">
                   <div className="flex items-center gap-2">

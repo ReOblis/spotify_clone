@@ -24,7 +24,7 @@ const Register = () => {
     try {
       await register(userData);
       setError("");
-      navigate("/Login"); // chuyển hướng sau khi đăng ký
+      navigate("/Login"); 
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
       setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");

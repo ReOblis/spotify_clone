@@ -18,9 +18,8 @@ from django.db.models import F, Q
 
 
 
-# 📌 API: Lấy danh sách album (Công khai)
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])  # Cho phép tất cả truy cập
+@permission_classes([AllowAny])  
 def album_list(request):
     if request.method == 'GET':
         albums = Album.objects.all()
@@ -33,9 +32,8 @@ def album_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 📌 API: Lấy chi tiết album (Công khai)
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([AllowAny])  # Cho phép tất cả truy cập
+@permission_classes([AllowAny])  
 def album_detail(request, album_id):
     try:
         album = Album.objects.get(id=album_id)
@@ -55,9 +53,8 @@ def album_detail(request, album_id):
         album.delete()
         return Response({"message": "Album deleted"}, status=status.HTTP_204_NO_CONTENT)
 
-# 📌 API: Lấy danh sách bài hát (Công khai)
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])  # Cho phép tất cả truy cập
+@permission_classes([AllowAny])  
 def song_list(request):
     if request.method == 'GET':
         songs = Song.objects.all()
@@ -70,9 +67,8 @@ def song_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 📌 API: Lấy chi tiết bài hát (Công khai)
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([AllowAny])  # Cho phép tất cả truy cập
+@permission_classes([AllowAny])  
 def song_detail(request, song_id):
     try:
         song = Song.objects.get(id=song_id)
@@ -164,7 +160,6 @@ class AddSongToPlaylist(APIView):
         if not song:
             return Response({"detail": "Song not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Kiểm tra đã tồn tại trong playlist chưa
         exists = PlaylistSong.objects.filter(playlist=playlist, song=song).exists()
         if exists:
             return Response({"detail": "Song already exists in playlist"}, status=status.HTTP_400_BAD_REQUEST)
@@ -262,9 +257,9 @@ class StreamAudioView(APIView):
             audio_path = song.audio_file.path
 
             response = FileResponse(open(audio_path, 'rb'))
-            response['Content-Type'] = 'audio/mpeg'  # Tùy vào định dạng bạn dùng
+            response['Content-Type'] = 'audio/mpeg'  
             response['Accept-Ranges'] = 'bytes'
-            response['Access-Control-Allow-Origin'] = '*'  # CORS cho frontend gọi
+            response['Access-Control-Allow-Origin'] = '*'  
 
             return response
 
@@ -285,7 +280,7 @@ class SongsByAlbum(APIView):
 class TopSongsView(APIView):
 
     def get(self, request):
-        top_songs = Song.objects.all().order_by('-listen_count')[:20]  # lấy top 20
+        top_songs = Song.objects.all().order_by('-listen_count')[:20]
         serializer = SongSerializer(top_songs, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -296,16 +291,13 @@ def search(request):
     if not query:
         return Response({'songs': [], 'albums': []})
     
-    # Tìm kiếm song theo title và artist
     songs = Song.objects.filter(
         Q(title__icontains=query) | 
         Q(artist__icontains=query)
-    )[:10]  # Giới hạn 10 kết quả
+    )[:10]  
     
-    # Tìm kiếm album theo name
     albums = Album.objects.filter(name__icontains=query)[:10]
     
-    # Tìm kiếm song theo album
     songs_by_album = Song.objects.filter(album__name__icontains=query)
     songs = (songs | songs_by_album).distinct()[:10]  # Kết hợp và loại bỏ trùng lặp
     
@@ -344,15 +336,12 @@ def stream_video(request, id):
     video = get_object_or_404(Video, id=id)
     video_path = video.video_file.path
     
-    # Get file size
     file_size = os.path.getsize(video_path)
     
-    # Get content type
     content_type, _ = mimetypes.guess_type(video_path)
     if not content_type:
-        content_type = 'video/mp4'  # Default to mp4 if type cannot be determined
+        content_type = 'video/mp4'  
     
-    # Handle range requests
     range_header = request.META.get('HTTP_RANGE', '').strip()
     range_match = re.match(r'bytes=(\d+)-(\d*)', range_header)
     
@@ -360,7 +349,6 @@ def stream_video(request, id):
         start = int(range_match.group(1))
         end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
         
-        # Make sure we don't go beyond file size
         end = min(end, file_size - 1)
         length = end - start + 1
         
@@ -373,7 +361,6 @@ def stream_video(request, id):
         response['Content-Length'] = str(length)
         response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
     else:
-        # Full video stream
         response = StreamingHttpResponse(
             streaming_content=video_stream_generator(video_path),
             content_type=content_type

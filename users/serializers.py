@@ -10,8 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Tạo user với mật khẩu được mã hóa
-        password = validated_data.pop('password', None)  # Đảm bảo mật khẩu được tách riêng
+        password = validated_data.pop('password', None)  
         user = User.objects.create_user(**validated_data)  # Sử dụng `create_user` để mã hóa mật khẩu
         if password:
             user.set_password(password)

@@ -51,7 +51,7 @@ const handleDeletePlaylist = async () => {
 
   try {
     await removePlaylist(id);
-    navigate("/"); // hoặc "/library" nếu bạn có trang riêng
+    navigate("/"); 
   } catch (error) {
     console.error("Failed to delete playlist:", error);
     alert("Failed to delete playlist");

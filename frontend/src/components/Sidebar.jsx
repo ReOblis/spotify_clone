@@ -23,7 +23,6 @@ const [newPlaylistName, setNewPlaylistName] = useState("");
     return location.pathname.includes(path);
   };
 
-  // Kiểm tra xem trang hiện tại có phải trang tìm kiếm không (dựa vào query params)
   const isSearchPage = () => {
     const params = new URLSearchParams(location.search);
     return params.has('q');
@@ -64,7 +63,7 @@ const [newPlaylistName, setNewPlaylistName] = useState("");
 
  const handleCreatePlaylist = async () => {
   if (!isLoggedIn) {
-    navigate('/login');
+    navigate('/Login');
     return;
   }
 
@@ -90,7 +89,6 @@ const [newPlaylistName, setNewPlaylistName] = useState("");
       setIsSearching(true);
       try {
         const searchResults = await searchContent(searchQuery);
-        // Thay đổi: Thay vì navigate đến /search, chúng ta sẽ navigate đến trang chủ với query parameter
         navigate(`/?q=${encodeURIComponent(searchQuery)}`, { 
           state: { 
             results: searchResults, 
@@ -113,6 +111,7 @@ const [newPlaylistName, setNewPlaylistName] = useState("");
     // Focus the search input when clicked
     document.getElementById('search-input')?.focus();
   };
+
 
   return (
     <div className="w-[25%] h-full flex-col gap-2 text-white hidden lg:flex overflow-hidden">

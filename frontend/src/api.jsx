@@ -420,4 +420,3 @@ export const getVideo = async (id) => {
   }
 };
 
-// Update the searchContent function to include videos

@@ -7,7 +7,7 @@ User = get_user_model()
 class Album(models.Model):
     name = models.CharField(max_length=255)
     artist = models.CharField(max_length=255)
-    cover_image = models.ImageField(upload_to="album_images/", blank=True, null=True)  # Dùng ImageField thay vì URLField
+    cover_image = models.ImageField(upload_to="album_images/", blank=True, null=True)   
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -42,7 +42,7 @@ class PlaylistSong(models.Model):
     playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, related_name='playlist_songs')
     song = models.ForeignKey('Song', on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
-    order = models.PositiveIntegerField(default=0)  # thứ tự bài hát trong playlist
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ('playlist', 'song')
@@ -65,6 +65,7 @@ class Video(models.Model):
     title = models.CharField(max_length=255)
     video_file = models.FileField(upload_to='videos/')
     duration = models.CharField(max_length=50, blank=True)
+    thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

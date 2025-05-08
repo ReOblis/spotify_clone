@@ -5,8 +5,8 @@ import {
   removeFromFavorites,
   addSongToPlaylist,
   createPlaylist as apiCreatePlaylist,
-} from "../api"; // Import API functions
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+} from "../api"; 
+import { useNavigate } from "react-router-dom"; 
 import Cookies from 'js-cookie';
 
 
@@ -20,22 +20,18 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
   const [message, setMessage] = useState({ text: "", type: "" });
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  const navigate = useNavigate(); // Initialize navigate for redirection
+  const navigate = useNavigate(); 
   
-  // Check if user is logged in
   const isLoggedIn = () => {
-    // Check if there's an auth token in localStorage or any other authentication method you use
     return Cookies.get("token");
   };
 
-  // Fetch user playlists
   useEffect(() => {
     if (showPlaylistSelector) {
       fetchPlaylists();
     }
   }, [showPlaylistSelector]);
 
-  // Click outside handler
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -54,7 +50,6 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
   const fetchPlaylists = async () => {
     setIsLoading(true);
     try {
-      // Use the API function instead of direct axios call
       const data = await getUserPlaylists();
       setPlaylists(data);
     } catch (error) {
@@ -68,11 +63,9 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
   const toggleFavorite = async () => {
     try {
       if (isInFavorites) {
-        // Remove from favorites using API function
         await removeFromFavorites(songId);
         showNotification("Removed from favorites", "success");
       } else {
-        // Add to favorites using API function
         await addToFavorites(songId);
         showNotification("Added to favorites", "success");
       }
@@ -85,13 +78,11 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
   
   const handleAddToPlaylist = async (playlistId) => {
     try {
-      // Use the API function instead of direct axios call
       await addSongToPlaylist(playlistId, songId);
       showNotification("Added to playlist", "success");
       setShowPlaylistSelector(false);
       setShowMenu(false);
     } catch (error) {
-      // Check for error response
       if (error.message && error.message.includes("400")) {
         showNotification("Song already in playlist", "error");
       } else {
@@ -110,7 +101,6 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
       // Create playlist using API function
       const newPlaylist = await apiCreatePlaylist(newPlaylistName);
       
-      // Add song to the newly created playlist
       await addSongToPlaylist(newPlaylist.id, songId);
       setNewPlaylistName("");
       setShowCreatePlaylist(false);
@@ -127,8 +117,7 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
     setTimeout(() => setMessage({ text: "", type: "" }), 3000);
   };
 
-  // Determine if we should display menu upward
-  // This will check if the button is in the bottom half of the viewport
+  
   const [showMenuUpward, setShowMenuUpward] = useState(false);
   
   useEffect(() => {
@@ -146,17 +135,14 @@ const SongActionMenu = ({ songId, isInFavorites = false }) => {
     return "top-full mt-2"; // Position below button (default)
   };
   
-  // Handle click on the Plus button
   const handleButtonClick = (e) => {
     e.stopPropagation();
     
-    // If user is not logged in, redirect to Register page
     if (!isLoggedIn()) {
       navigate("/Register");
       return;
     }
     
-    // Otherwise, show the menu as usual
     setShowMenu(!showMenu);
     setShowPlaylistSelector(false);
     setShowCreatePlaylist(false);

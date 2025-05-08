@@ -5,23 +5,23 @@ export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
   const audioRef = useRef();
-  const videoRef = useRef(); // Add reference for video element
+  const videoRef = useRef(); 
   const seekBg = useRef();
   const seekBar = useRef();
-  const lastPlayedMediaIdRef = useRef(null); // Track last successfully played media ID
+  const lastPlayedMediaIdRef = useRef(null); 
 
   const [songs, setSongs] = useState([]);
-  const [videos, setVideos] = useState([]); // Add videos state
-  const [mediaType, setMediaType] = useState("audio"); // Track whether we're playing audio or video
+  const [videos, setVideos] = useState([]); 
+  const [mediaType, setMediaType] = useState("audio"); 
   const [track, setTrack] = useState({
     id: 0,
     title: "",
     artist: "",
     cover_image: "",
     audio_file: "",
-    video_file: "", // Add video_file property
+    video_file: "", 
     duration: "00:00",
-    type: "audio", // Default type is audio
+    type: "audio", 
   });
   const [playStatus, setPlayStatus] = useState(false);
   const [time, setTime] = useState({
@@ -72,7 +72,6 @@ const PlayerContextProvider = ({ children }) => {
 
     loadMedia();
     
-    // Try to load favorites from localStorage
     try {
       const savedFavorites = localStorage.getItem('favoriteSongs');
       if (savedFavorites) {
@@ -83,14 +82,12 @@ const PlayerContextProvider = ({ children }) => {
     }
   }, []);
 
-  // Save favorites to localStorage when it changes
   useEffect(() => {
     if (favoriteSongs.length > 0) {
       localStorage.setItem('favoriteSongs', JSON.stringify(favoriteSongs));
     }
   }, [favoriteSongs]);
 
-  // Get the current media element (audio or video) based on media type
   const getCurrentMediaElement = () => {
     return mediaType === "audio" ? audioRef.current : videoRef.current;
   };
@@ -99,7 +96,6 @@ const PlayerContextProvider = ({ children }) => {
     const mediaElement = getCurrentMediaElement();
     if (!mediaElement) return;
     
-    // Set source if it hasn't been set yet
     if (mediaType === "audio" && !mediaElement.src && track?.audio_file) {
       mediaElement.src = track.audio_file;
       lastPlayedMediaIdRef.current = track.id;
@@ -147,18 +143,15 @@ const PlayerContextProvider = ({ children }) => {
       const index = list.findIndex(item => item.id === id);
       setIsLastTrack(index === list.length - 1);
       
-      // Update track state first (for UI)
       setTrack({
         ...media,
         type: type
       });
       
-      // If it's a video, auto-show the video player
       if (type === "video") {
         setShowVideoPlayer(true);
       }
       
-      // Pause and clear current media
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.removeAttribute('src');
@@ -171,7 +164,6 @@ const PlayerContextProvider = ({ children }) => {
         videoRef.current.load();
       }
       
-      // Set the new source with slight delay to avoid multiple requests
       setTimeout(() => {
         const mediaElement = type === "audio" ? audioRef.current : videoRef.current;
         
@@ -198,7 +190,6 @@ const PlayerContextProvider = ({ children }) => {
     }
   };
 
-  // Play a video with given ID
   const playVideo = (id, optionalVideoList) => {
     return playWithId(id, "video", optionalVideoList);
   };
