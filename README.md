@@ -98,10 +98,30 @@ The music player uses Context API for persistent playback across pages.
 
 Use the Django Admin panel to manage songs, users, and playlists.
 
-### 📄 License
-This project is open-source and available under the MIT License.
 ### 🙋‍♂️ Contributors
 Feel free to open issues or submit pull requests to help improve the project!
 
 Let me know if you want me to customize this further (e.g., add example API endpoints, screenshots, or a  deploy guide).
 
+
+### 🎧 Application Screenshots
+
+This section showcases the user interface of the music streaming platform, including the main user-facing pages and the admin dashboard.
+
+#### 🏠 Home Page (User Interface)
+Here are several views from the main homepage, where users can browse, search, and play music:
+
+| View 1 | View 2 | View 3 |
+|--------|--------|--------|
+| ![](frontend/gitimg/20.png) | ![](frontend/gitimg/21.png) | ![](frontend/gitimg/22.png) |
+
+| View 4 | View 5 | View 6 |
+|--------|--------|--------|
+| ![](frontend/gitimg/23.png) | ![](frontend/gitimg/24.png) | ![](frontend/gitimg/25.png) |
+
+#### 🔧 Admin Dashboard
+These screens illustrate the administrative interface used to manage content, users, and system settings:
+
+| Admin View 1 | Admin View 2 | Admin View 3 |
+|--------------|--------------|--------------|
+| ![](frontend/gitimg/26.png) | ![](frontend/gitimg/27.png) | ![](frontend/gitimg/28.png) |
