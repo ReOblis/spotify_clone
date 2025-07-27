@@ -113,11 +113,11 @@ Here are several views from the main homepage, where users can browse, search, a
 
 | View 1 | View 2 | View 3 |
 |--------|--------|--------|
-| ![](frontend/gitimg/20.png) | ![](frontend/gitimg/21.png) | ![](frontend/gitimg/22.png) |
+| ![](frontend/gitimg/20.jpg) | ![](frontend/gitimg/21.jpg) | ![](frontend/gitimg/22.jpg) |
 
 | View 4 | View 5 | View 6 |
 |--------|--------|--------|
-| ![](frontend/gitimg/23.png) | ![](frontend/gitimg/24.png) | ![](frontend/gitimg/25.png) |
+| ![](frontend/gitimg/23.jpg) | ![](frontend/gitimg/24.png) | ![](frontend/gitimg/25.png) |
 
 #### 🔧 Admin Dashboard
 These screens illustrate the administrative interface used to manage content, users, and system settings:
